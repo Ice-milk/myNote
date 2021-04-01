@@ -807,6 +807,23 @@ main(){
 }
 ```
 
+### 位操作的应用
+
+对位操作的运算符有：
+
+```c
+>> n 右移n位相当于除以2的n次方
+>> n 左移n位相当于乘以2的n次方
+&按位与 |按位或 ^按位异或 ~按位取反
+```
+
+应用：
+
+- 对掩码按位与可以检查对应位是否开启
+- 对掩码按位或可以打开对应开关位
+- 对掩码按位异或可以转置对应位，即开变为关，关变为开
+- 对掩码取反再按位与可以关闭对应开关位
+
 ### 17 共用体
 
 共用体是一种在同一个内存段存储多种类型数据的数据类型，和结构体的区别是，在一个时刻，共用体只能存储一种类型的数据，而结构体可以同时开辟多个存储空间，同时存储多种类型的数据。
@@ -965,14 +982,15 @@ fopen_s(&fp,"\\123.txt","w+");
 
 打开文件的时候需要制定访问模式，C语言中有以下几种文件访问模式：
 
-| 模式 | 二进制模式 | 描述                                                         |
-| ---- | ---------- | ------------------------------------------------------------ |
-| r    | rb         | 读取，打开**已有**的文件读取内容。                           |
-| w    | wb         | 写入，创建新文件，如果已存在，会覆盖原文件内容。             |
-| a    | ab         | 追加，可创建新文件。如果文件存在，则会在已有的文件内容后面追加内容。 |
-| r+   | rb+        | 可读可写，打开已有文件。                                     |
-| w+   | wb+        | 可读可写，创建新文件，如果已存在，会覆盖原文件内容。         |
-| a+   | ab+        | 可读，可追加写入，可创建新文件。                             |
+| **模式** | **描述**                                                     |
+| -------- | ------------------------------------------------------------ |
+| "r"      | 1. 以只读的模式打开一个文本文件，从文件头开始读取<br>2. 该文本文件必须存在 |
+| "w"      | 1. 以只写的模式打开一个文本文件，从文件头开始写入<br>2. 如果文件不存在则创建一个新的文件<br>3. 如果文件已存在则将文件的长度截断为 0（重新写入的内容将覆盖原有的所有内容） |
+| "a"      | 1. 以追加的模式打开一个文本文件，从文件末尾追加内容<br>2. 如果文件不存在则创建一个新的文件 |
+| "r+"     | 1. 以读和写的模式打开一个文本文件，从文件头开始读取和写入<br>2. 该文件必须存在<br>3. 该模式不会将文件的长度截断为 0（只覆盖重新写入的内容，原有的内容保留） |
+| "w+"     | 1. 以读和写的模式打开一个文本文件，从文件头开始读取和写入<br>2. 如果文件不存在则创建一个新的文件<br>3. 如果文件已存在则将文件的长度截断为 0（重新写入的内容将覆盖原有的所有内容） |
+| "a+"     | 1. 以读和追加的模式打开一个文本文件<br>2. 如果文件不存在则创建一个新的文件<br>3. 读取是从文件头开始，而写入则是在文件末尾追加 |
+| "b"      | 1. 与上面 6 中模式均可结合（"rb", "wb", "ab", "r+b", "w+b", "a+b"）<br>2. 其描述的含义一样，只不过操作的对象是二进制文件（见备注） |
 
 #### 读取\写入
 
@@ -1505,15 +1523,130 @@ strncmp(a,b,5);
 
 ### 32 单链表
 
-#### 1、链表的数据结构
+#### 1、单链表的数据结构
 
-#### 2、链表的操作
+![image-20210323084600383](https://i.loli.net/2021/03/23/PSMcY9x7wrqysh8.png)
+
+初始化：
+
+```c
+#include <stdio.h>
+
+struct Link
+{
+    DataType data;
+    struct Link *next;
+};
+
+int main(void){
+    struct Link *head = NULL;//不作为全局变量，全局变量容易被修改，不安全
+}
+```
+
+#### 2、单链表的操作
 
 #### 2.1 增加元素
 
+![image-20210323091247075](https://i.loli.net/2021/03/23/e3QEZPj2ONXcKR5.png)
+
+头插法：
+
+```c
+#include <stdlib.h>
+
+void add_h(struct Link **head) //要修改主函数中的指针变量，需要传递其地址
+{
+    struct Link *new_element = NULL;
+    new_element = (struct Link *)malloc(sizeof(struct Link));
+    if(NULL == new_element)
+    {
+        printf("分配内存失败，按任意键退出...\n");
+        getchar();
+        exit(-1);
+    }
+    
+    input(new_element);//输入新元素的子函数
+    
+    if(NULL == *head)
+    {
+        *head = new_element;
+        new_element->next = NULL;
+    }
+    else
+    {
+        new_element->next = *head;
+        *head = new_element;
+    }
+}
+```
+
+尾插法：
+
+```c
+void add_t(struct Link **head)
+{
+    struct Link *new_element = NULL;
+    static struct Link *tail;// 用静态函数始终指向链表尾部
+    new_element = (struct Link *)malloc(sizeof(struct Link));
+    if(NULL == new_element)
+    {
+        printf("分配内存失败，按任意键退出...\n");
+        getchar();
+        exit(-1);
+    }
+    
+    input(new_element);// 输入新元素的子函数
+    
+    if(NULL == *head)
+    {
+        *head = new_element;
+    }
+    else
+    {
+        tail->next = new_element;
+    }
+    new_element->next = NULL;
+    tail = new_element; // 指向新的尾部
+}
+```
+
 #### 2.2 读取链表
 
+从头到尾读取链表所有内容：
+
+![image-20210323134452720](https://i.loli.net/2021/03/23/ZWN7PFMsnydirj8.png)
+
+```c
+void print_all(struct Link *head)
+{
+    struct Link *temp = head;
+    while(temp != NULL)
+    {
+        print(temp);// 打印单个元素的函数
+        temp = temp->next;
+    }
+}
+```
+
 #### 2.3 搜索链表
+
+```c
+// item 数据项
+struct Link *search(DataType item, struct Link *head)
+{
+    struct Link *temp = head;
+    while(temp != NULL)
+    {
+        if(temp->data1 == item || temp->data2 == item)
+        {
+            return temp;
+        }
+        temp = temp->next;
+    }
+    printf("没有对应的信息\n");
+    return NULL;
+}
+```
 
 #### 2.4 插入元素
 
